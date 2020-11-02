@@ -14,6 +14,7 @@
 //
 // mongoose.connect(<Your URI>, { useNewUrlParser: true, useUnifiedTopology: true });
 
+//PW='2iHf6j9oi7pLFqga'  -> pasword for uri 
 let uri =
   "mongodb+srv://user1:" +
   process.env.PW +
