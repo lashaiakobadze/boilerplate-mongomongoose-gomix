@@ -1,21 +1,25 @@
 /**********************************************
-* 3. FCC Mongo & Mongoose Challenges
-* ==================================
-***********************************************/
+ * 3. FCC Mongo & Mongoose Challenges
+ * ==================================
+ ***********************************************/
 
 /** # MONGOOSE SETUP #
 /*  ================== */
 
 /** 1) Install & Set up mongoose */
 
-// Add mongodb and mongoose to the project's package.json. Then require 
-// mongoose. Store your Mongo Atlas database URI in the private .env file 
+// Add mongodb and mongoose to the project's package.json. Then require
+// mongoose. Store your Mongo Atlas database URI in the private .env file
 // as MONGO_URI. Connect to the database using the following syntax:
 //
-// mongoose.connect(<Your URI>, { useNewUrlParser: true, useUnifiedTopology: true }); 
+// mongoose.connect(<Your URI>, { useNewUrlParser: true, useUnifiedTopology: true });
 
-
-
+let uri =
+  "mongodb+srv://user1:" +
+  process.env.PW +
+  "@freecodecamp.gk8us.mongodb.net/db1?retryWrites=true&w=majority";
+let mongoose = require("mongoose");
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 /** # SCHEMAS and MODELS #
 /*  ====================== */
 
@@ -41,7 +45,16 @@
 
 // <Your code here >
 
-var Person /* = <Your Model> */
+let peopleSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  age: Number,
+  favoriteFoods: [String]
+});
+
+let Person = mongoose.model("Person", peopleSchema);
+
+/*let lasha=new Person({name: 'lasha',age:22,favoriteFoods:['khinkali']});
+console.log(lasha);*/
 
 // **Note**: Glitch is a real server, and in real servers interactions with
 // the db are placed in handler functions, to be called when some event happens
@@ -69,7 +82,7 @@ var Person /* = <Your Model> */
 // and `favoriteFoods`. Their types must be conformant to the ones in
 // the Person `Schema`. Then call the method `document.save()` on the returned
 // document instance, passing to it a callback using the Node convention.
-// This is a common pattern, all the **CRUD** methods take a callback 
+// This is a common pattern, all the **CRUD** methods take a callback
 // function like this as the last argument.
 
 // - Example -
@@ -79,9 +92,20 @@ var Person /* = <Your Model> */
 // });
 
 var createAndSavePerson = function(done) {
-  
-  done(null /*, data*/);
+  let francesca = new Person({
+    name: "Francesca",
+    age: 20,
+    favoriteFoods: ["sushi"]
+  });
 
+  francesca.save((error, data) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, data);
+    }
+  });
+  //done(null /*, data*/);
 };
 
 /** 4) Create many People with `Model.create()` */
@@ -93,11 +117,19 @@ var createAndSavePerson = function(done) {
 // Modify the createManyPeople function to create many people using
 // Model.create() with the argument arrayOfPeople.
 // Note: You can reuse the model you instantiated in the previous exercise.
-
+let arrayOfPeople = [
+  { name: "lasha", age: 22, favoriteFoods: ["khinkali"] },
+  { name: "levani", age: 17, favoriteFoods: ["shaurma"] },
+  { name: "soso", age: 16, favoriteFoods: ["pizza"] }
+];
 var createManyPeople = function(arrayOfPeople, done) {
-    
-    done(null/*, data*/);
-    
+  Person.create(arrayOfPeople, (error, createdPeople) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, createdPeople);
+    }
+  });
 };
 
 /** # C[R]UD part II - READ #
@@ -110,11 +142,22 @@ var createManyPeople = function(arrayOfPeople, done) {
 // object ) as the first argument, and returns an **array** of matches.
 // It supports an extremely wide range of search options. Check it in the docs.
 // Use the function argument `personName` as search key.
-
+Person.find({ name: "lasha", age: 22 }, (error, data) => {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log(data);
+  }
+});
 var findPeopleByName = function(personName, done) {
-  
-  done(null/*, data*/);
-
+  Person.find({ name: personName }, (error, arrayOfResults) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, arrayOfResults);
+    }
+  });
+  //done(null /*, data*/);
 };
 
 /** 6) Use `Model.findOne()` */
@@ -125,11 +168,22 @@ var findPeopleByName = function(personName, done) {
 // Find just one person which has a certain food in her favorites,
 // using `Model.findOne() -> Person`. Use the function
 // argument `food` as search key
-
+/*Person.findOne({favoriteFoods:{$all:['pizza']}},(error,data)=>{
+  if(error){
+    console.log(error);
+  }else{
+    console.log(data);
+  }
+});*/
 var findOneByFood = function(food, done) {
-
-  done(null/*, data*/);
-  
+  Person.findOne({ favoriteFoods: { $all: [food] } }, (error, result) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, result);
+    }
+  });
+  // done(null /*, data*/);
 };
 
 /** 7) Use `Model.findById()` */
@@ -142,9 +196,14 @@ var findOneByFood = function(food, done) {
 // Use the function argument 'personId' as search key.
 
 var findPersonById = function(personId, done) {
-  
-  done(null/*, data*/);
-  
+  Person.findById(personId, (error, result) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, result);
+    }
+  });
+  //done(null /*, data*/);
 };
 
 /** # CR[U]D part III - UPDATE # 
@@ -173,9 +232,22 @@ var findPersonById = function(personId, done) {
 // (http://mongoosejs.com/docs/schematypes.html - #Mixed )
 
 var findEditThenSave = function(personId, done) {
-  var foodToAdd = 'hamburger';
-  
-  done(null/*, data*/);
+  var foodToAdd = "hamburger";
+
+  Person.findById(personId, (error, result) => {
+    if (error) {
+      console.log(error);
+    } else {
+      result.favoriteFoods.push(foodToAdd);
+      result.save((error, updatedResult) => {
+        if (error) {
+          console.log(error);
+        } else {
+          done(null, updatedResult);
+        }
+      });
+    }
+  });
 };
 
 /** 9) New Update : Use `findOneAndUpdate()` */
@@ -195,8 +267,19 @@ var findEditThenSave = function(personId, done) {
 
 var findAndUpdate = function(personName, done) {
   var ageToSet = 20;
-
-  done(null/*, data*/);
+  Person.findOneAndUpdate(
+    { name: personName },
+    { age: ageToSet },
+    { new: true },
+    (error, updatedRecord) => {
+      if (error) {
+        console.log(error);
+      } else {
+        done(null, updatedRecord);
+      }
+    }
+  );
+  //done(null /*, data*/);
 };
 
 /** # CRU[D] part IV - DELETE #
@@ -210,9 +293,14 @@ var findAndUpdate = function(personName, done) {
 // As usual, use the function argument `personId` as search key.
 
 var removeById = function(personId, done) {
-  
-  done(null/*, data*/);
-    
+  Person.findByIdAndRemove(personId, (error, deleteRecord) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, deleteRecord);
+    }
+  });
+  //done(null /*, data*/);
 };
 
 /** 11) Delete many People */
@@ -227,8 +315,14 @@ var removeById = function(personId, done) {
 
 var removeManyPeople = function(done) {
   var nameToRemove = "Mary";
-
-  done(null/*, data*/);
+  Person.remove({ name: nameToRemove }, (error, JSONStatus) => {
+    if (error) {
+      console.log(error);
+    } else {
+      done(null, JSONStatus);
+    }
+  });
+  //done(null /*, data*/);
 };
 
 /** # C[R]UD part V -  More about Queries # 
@@ -251,8 +345,18 @@ var removeManyPeople = function(done) {
 
 var queryChain = function(done) {
   var foodToSearch = "burrito";
-  
-  done(null/*, data*/);
+  Person.find({ favoriteFoods: { $all: [foodToSearch] } })
+    .sort({ name: "asc" })
+    .limit(2)
+    .select("-age")
+    .exec((error, filtereResults) => {
+      if (error) {
+        console.log(error);
+      } else {
+        done(null, filtereResults);
+      }
+    });
+  //done(null /*, data*/);
 };
 
 /** **Well Done !!**
@@ -267,7 +371,6 @@ var queryChain = function(done) {
 // * Validation,
 // * Schema Virtuals and  Model, Static, and Instance methods,
 // * and much more in the [mongoose docs](http://mongoosejs.com/docs/)
-
 
 //----- **DO NOT EDIT BELOW THIS LINE** ----------------------------------
 
